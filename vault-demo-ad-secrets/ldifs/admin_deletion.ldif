@@ -1,0 +1,2 @@
+dn: CN={{.Username}},CN=Users,DC=vault,DC=lab
+changetype: delete
