@@ -23,9 +23,9 @@ provider "aws" {
 }
 
 provider "vault" {
-    address = "http://${data.tfe_outputs.vault_demo_init.values.vault_pub_address}:8200"
-    auth_login_userpass {
-      username = "terraform"
-      password = data.tfe_outputs.vault_demo_init.values.vault_pass
-    }
+  address = "http://${data.tfe_outputs.vault_demo_init.values.vault_pub_address}:8200"
+  auth_login_userpass {
+    username = "terraform"
+    password = data.tfe_outputs.vault_demo_init.values.vault_pass
+  }
 }

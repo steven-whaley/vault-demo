@@ -5,7 +5,7 @@ variable "region" {
 }
 
 variable "aws_key_name" {
-  type = string
+  type        = string
   description = "The name of the key pair to associate with the EC2 instance"
-  default = "sw-ec2key"
+  default     = "sw-ec2key"
 }

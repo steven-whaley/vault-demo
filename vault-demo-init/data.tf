@@ -11,7 +11,7 @@ data "aws_ami" "vault_ami" {
 }
 
 data "template_file" "vault-init" {
-  template = "${file("${path.module}/vault_user_data.tftpl")}"
+  template = file("${path.module}/vault_user_data.tftpl")
   vars = {
     vaultpass = random_string.vault_pass.result
   }

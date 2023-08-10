@@ -8,7 +8,7 @@ resource "aws_instance" "domain_controller" {
   subnet_id                   = data.tfe_outputs.vault_demo_init.values.public_subnet_id
   associate_public_ip_address = true
   vpc_security_group_ids      = [module.dc_security_group.security_group_id]
-  user_data = templatefile("domain-controller_userdata.tftpl", { admin_pass = var.admin_pass })
+  user_data                   = templatefile("domain-controller_userdata.tftpl", { admin_pass = var.admin_pass })
 
   tags = {
     Name = "vault-demo-domain-controller"
@@ -25,13 +25,13 @@ module "dc_security_group" {
   vpc_id      = data.tfe_outputs.vault_demo_init.values.vpc_id
 
   ingress_cidr_blocks = ["97.115.136.153/32"]
-  ingress_rules = ["rdp-tcp"] 
+  ingress_rules       = ["rdp-tcp"]
 
   ingress_with_cidr_blocks = [
     {
-        rule = "all-all"
-        description = "Allow ingress from everything in VPC"
-        cidr_blocks = data.tfe_outputs.vault_demo_init.values.vpc_cidr
+      rule        = "all-all"
+      description = "Allow ingress from everything in VPC"
+      cidr_blocks = data.tfe_outputs.vault_demo_init.values.vpc_cidr
     }
   ]
 
@@ -40,13 +40,13 @@ module "dc_security_group" {
 }
 
 resource "vault_ldap_secret_backend" "ad" {
-  path          = "vault-lab-ad"
-  binddn        = "Administrator@vault.lab"
-  bindpass      = var.admin_pass
-  url           = "ldaps://${aws_instance.domain_controller.private_ip}"
-  insecure_tls  = "true"
-  userdn        = "CN=Users,DC=vault,DC=lab"
-  schema = "ad"
+  path         = "vault-lab-ad"
+  binddn       = "Administrator@vault.lab"
+  bindpass     = var.admin_pass
+  url          = "ldaps://${aws_instance.domain_controller.private_ip}"
+  insecure_tls = "true"
+  userdn       = "CN=Users,DC=vault,DC=lab"
+  schema       = "ad"
 }
 
 resource "vault_ldap_secret_backend_library_set" "dev" {
@@ -66,21 +66,21 @@ resource "vault_ldap_secret_backend_static_role" "role" {
 }
 
 resource "vault_ldap_secret_backend_dynamic_role" "domain_admin" {
-    mount = vault_ldap_secret_backend.ad.path
-    role_name = "domain_admin"
-    creation_ldif = file("${path.module}/ldifs/admin_creation.ldif")
-    deletion_ldif = file("${path.module}/ldifs/admin_deletion.ldif")
-    rollback_ldif = file("${path.module}/ldifs/admin_deletion.ldif")
-    username_template = "v_admin_{{unix_time}}"
-    default_ttl = "3600"
+  mount             = vault_ldap_secret_backend.ad.path
+  role_name         = "domain_admin"
+  creation_ldif     = file("${path.module}/ldifs/admin_creation.ldif")
+  deletion_ldif     = file("${path.module}/ldifs/admin_deletion.ldif")
+  rollback_ldif     = file("${path.module}/ldifs/admin_deletion.ldif")
+  username_template = "v_admin_{{unix_time}}"
+  default_ttl       = "3600"
 }
 
 resource "vault_ldap_secret_backend_dynamic_role" "domain_user" {
-    mount = vault_ldap_secret_backend.ad.path
-    role_name = "domain_user"
-    creation_ldif = file("${path.module}/ldifs/user_creation.ldif")
-    deletion_ldif = file("${path.module}/ldifs/user_deletion.ldif")
-    rollback_ldif = file("${path.module}/ldifs/user_deletion.ldif")
-    username_template = "v_user_{{unix_time}}"
-    default_ttl = "3600"
+  mount             = vault_ldap_secret_backend.ad.path
+  role_name         = "domain_user"
+  creation_ldif     = file("${path.module}/ldifs/user_creation.ldif")
+  deletion_ldif     = file("${path.module}/ldifs/user_deletion.ldif")
+  rollback_ldif     = file("${path.module}/ldifs/user_deletion.ldif")
+  username_template = "v_user_{{unix_time}}"
+  default_ttl       = "3600"
 }

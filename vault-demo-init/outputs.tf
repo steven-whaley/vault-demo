@@ -8,7 +8,7 @@ output "vault_priv_address" {
 
 output "vpc_id" {
   value = module.vault-demo-vpc.vpc_id
-} 
+}
 
 output "private_subnet_id" {
   value = module.vault-demo-vpc.private_subnets[0]

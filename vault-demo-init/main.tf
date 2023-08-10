@@ -1,5 +1,5 @@
 resource "random_string" "vault_pass" {
-  length = 12
+  length  = 12
   special = false
 }
 
@@ -11,7 +11,7 @@ module "vault-demo-vpc" {
   name = "vault-demo-vpc"
   cidr = "10.1.0.0/16"
 
-  azs             = ["us-west-2a", "us-west-2b" ]
+  azs             = ["us-west-2a", "us-west-2b"]
   private_subnets = ["10.1.1.0/24", "10.1.2.0/24"]
   public_subnets  = ["10.1.11.0/24", "10.1.12.0/24"]
 
@@ -34,9 +34,9 @@ module "vault-security-group" {
 
   ingress_with_cidr_blocks = [
     {
-      from_port = 8200
-      to_port = 8200
-      protocol = "tcp"
+      from_port   = 8200
+      to_port     = 8200
+      protocol    = "tcp"
       description = "Connect to Vault UI/API"
       cidr_blocks = "0.0.0.0/0"
     }
@@ -44,7 +44,7 @@ module "vault-security-group" {
 
   egress_with_cidr_blocks = [
     {
-      rule = "all-all"
+      rule        = "all-all"
       description = "Allow egress to everything within VPC"
       cidr_blocks = module.vault-demo-vpc.vpc_cidr_block
     }
@@ -119,6 +119,23 @@ resource "aws_iam_role" "vault_server_role" {
           ],
           "Resource" : "*"
         },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "s3:*",
+          ],
+          "Resource" : "arn:aws:s3:::*"
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "kms:Decrypt",
+            "kms:Encrypt",
+            "kms:DescribeKey",
+            "kms:GenerateDataKey"
+          ],
+          "Resource" : "*"
+        }
       ]
     })
   }
