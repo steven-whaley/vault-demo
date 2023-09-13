@@ -16,3 +16,23 @@ data "template_file" "vault-init" {
     vaultpass = random_string.vault_pass.result
   }
 }
+
+data "aws_region" "current" {}
+
+data "aws_iam_policy" "demo_user_permissions_boundary" {
+  name = "DemoUser"
+}
+
+data "aws_iam_policy" "admin_access" {
+  name = "AdministratorAccess"
+}
+
+data "aws_iam_policy_document" "client_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}

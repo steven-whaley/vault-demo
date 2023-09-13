@@ -1,9 +1,0 @@
-<powershell>
-net user Administrator "${admin_pass}"
-$NewPassword = ConvertTo-SecureString "${admin_pass}" -AsPlainText -Force
-
-Get-NetAdapter | where-object { $_.Name -eq "Ethernet 3" } | Set-DnsClientServerAddress -ServerAddresses ("${dc_ip}", "1.1.1.1")
-
-$credential = New-Object System.Management.Automation.PSCredential("administrator@vault.lab", $NewPassword)
-Add-Computer -DomainName vault.lab -Credential $credential -Restart
-</powershell>

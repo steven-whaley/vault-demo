@@ -54,92 +54,92 @@ module "vault-security-group" {
   egress_rules       = ["ssh-tcp", "mysql-tcp", "https-443-tcp"]
 }
 
-#Create Instance profile for vault server to provision AWS dynamic credentials
-resource "aws_iam_instance_profile" "vault_server_profile" {
-  name = "vault_server_profile"
-  role = aws_iam_role.vault_server_role.name
-}
+# #Create Instance profile for vault server to provision AWS dynamic credentials
+# resource "aws_iam_instance_profile" "vault_server_profile" {
+#   name = "vault_server_profile"
+#   role = aws_iam_role.vault_server_role.name
+# }
 
-resource "aws_iam_role" "vault_server_role" {
-  name = "vault_server_role"
-  path = "/"
+# resource "aws_iam_role" "vault_server_role" {
+#   name = "vault_server_role"
+#   path = "/"
 
-  assume_role_policy = <<EOF
-{
-      "Version": "2012-10-17",
-      "Statement": [
-          {
-              "Effect": "Allow",
-              "Action": [
-                  "sts:AssumeRole"
-             ],
-             "Principal": {
-                  "Service": [
-                    "ec2.amazonaws.com"
-                  ]
-             }
-         }
-      ]
-  }
-  EOF
+#   assume_role_policy = <<EOF
+# {
+#       "Version": "2012-10-17",
+#       "Statement": [
+#           {
+#               "Effect": "Allow",
+#               "Action": [
+#                   "sts:AssumeRole"
+#              ],
+#              "Principal": {
+#                   "Service": [
+#                     "ec2.amazonaws.com"
+#                   ]
+#              }
+#          }
+#       ]
+#   }
+#   EOF
 
-  inline_policy {
-    name = "vault_server_policy"
+#   inline_policy {
+#     name = "vault_server_policy"
 
-    policy = jsonencode({
-      "Version" : "2012-10-17",
-      "Statement" : [
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "iam:AttachUserPolicy",
-            "iam:CreateAccessKey",
-            "iam:CreateUser",
-            "iam:DeleteAccessKey",
-            "iam:DeleteUser",
-            "iam:DeleteUserPolicy",
-            "iam:DetachUserPolicy",
-            "iam:GetUser",
-            "iam:ListAccessKeys",
-            "iam:ListAttachedUserPolicies",
-            "iam:ListGroupsForUser",
-            "iam:ListUserPolicies",
-            "iam:PutUserPolicy",
-            "iam:AddUserToGroup",
-            "iam:RemoveUserFromGroup"
-          ],
-          "Resource" : ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/vault-*"]
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "iam:GetInstanceProfile",
-            "iam:GetUser",
-            "iam:GetRole"
-          ],
-          "Resource" : "*"
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "s3:*",
-          ],
-          "Resource" : "arn:aws:s3:::*"
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "kms:Decrypt",
-            "kms:Encrypt",
-            "kms:DescribeKey",
-            "kms:GenerateDataKey"
-          ],
-          "Resource" : "*"
-        }
-      ]
-    })
-  }
-}
+#     policy = jsonencode({
+#       "Version" : "2012-10-17",
+#       "Statement" : [
+#         {
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "iam:AttachUserPolicy",
+#             "iam:CreateAccessKey",
+#             "iam:CreateUser",
+#             "iam:DeleteAccessKey",
+#             "iam:DeleteUser",
+#             "iam:DeleteUserPolicy",
+#             "iam:DetachUserPolicy",
+#             "iam:GetUser",
+#             "iam:ListAccessKeys",
+#             "iam:ListAttachedUserPolicies",
+#             "iam:ListGroupsForUser",
+#             "iam:ListUserPolicies",
+#             "iam:PutUserPolicy",
+#             "iam:AddUserToGroup",
+#             "iam:RemoveUserFromGroup"
+#           ],
+#           "Resource" : ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/vault-*"]
+#         },
+#         {
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "iam:GetInstanceProfile",
+#             "iam:GetUser",
+#             "iam:GetRole"
+#           ],
+#           "Resource" : "*"
+#         },
+#         {
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*",
+#           ],
+#           "Resource" : "arn:aws:s3:::*"
+#         },
+#         {
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "kms:Decrypt",
+#             "kms:Encrypt",
+#             "kms:DescribeKey",
+#             "kms:GenerateDataKey"
+#           ],
+#           "Resource" : "*"
+#         }
+#       ]
+#     })
+#   }
+# }
 
 
 #Create Vault server EC2 instance with AWS Linux AMI
@@ -153,9 +153,27 @@ resource "aws_instance" "vault-server" {
   associate_public_ip_address = true
   vpc_security_group_ids      = [module.vault-security-group.security_group_id]
   user_data_base64            = base64encode(data.template_file.vault-init.rendered)
-  iam_instance_profile        = aws_iam_instance_profile.vault_server_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.vault_instance_profile.name
 
   tags = {
     Name = "vault-demo"
   }
+}
+
+# SE Demo Account Hoops to jump through to make AWS Auth work
+
+locals {
+  my_email = split("/", data.aws_caller_identity.current.arn)[2]
+}
+
+# EC2 IAM role for authenticating with Vault
+resource "aws_iam_role" "vault_target_iam_role" {
+  name               = "aws-ec2role-for-vault-authmethod"
+  assume_role_policy = data.aws_iam_policy_document.client_policy.json
+  managed_policy_arns = [data.aws_iam_policy.admin_access.arn]
+}
+
+resource "aws_iam_instance_profile" "vault_instance_profile" {
+  name = "demo_profile"
+  role = aws_iam_role.vault_target_iam_role.name
 }

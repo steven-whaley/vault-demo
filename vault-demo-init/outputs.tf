@@ -29,3 +29,7 @@ output "vault_pass" {
 output "vpc_cidr" {
   value = module.vault-demo-vpc.vpc_cidr_block
 }
+
+output "vault_auth_role" {
+  value = aws_iam_role.vault_target_iam_role.arn
+}

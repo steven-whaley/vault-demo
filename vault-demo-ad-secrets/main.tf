@@ -53,16 +53,16 @@ resource "vault_ldap_secret_backend_library_set" "dev" {
   mount                        = vault_ldap_secret_backend.ad.path
   name                         = "dev"
   service_account_names        = ["sa1@vault.lab", "sa2@vault.lab"]
-  ttl                          = 3600
+  ttl                          = 360
   disable_check_in_enforcement = false
-  max_ttl                      = 7200
+  max_ttl                      = 720
 }
 
 resource "vault_ldap_secret_backend_static_role" "role" {
   mount           = vault_ldap_secret_backend.ad.path
   username        = "legacy_admin@vault.lab"
   role_name       = "legacy_admin"
-  rotation_period = "3600"
+  rotation_period = "300"
 }
 
 resource "vault_ldap_secret_backend_dynamic_role" "domain_admin" {
@@ -72,7 +72,7 @@ resource "vault_ldap_secret_backend_dynamic_role" "domain_admin" {
   deletion_ldif     = file("${path.module}/ldifs/admin_deletion.ldif")
   rollback_ldif     = file("${path.module}/ldifs/admin_deletion.ldif")
   username_template = "v_admin_{{unix_time}}"
-  default_ttl       = "3600"
+  default_ttl       = "300"
 }
 
 resource "vault_ldap_secret_backend_dynamic_role" "domain_user" {
@@ -82,5 +82,5 @@ resource "vault_ldap_secret_backend_dynamic_role" "domain_user" {
   deletion_ldif     = file("${path.module}/ldifs/user_deletion.ldif")
   rollback_ldif     = file("${path.module}/ldifs/user_deletion.ldif")
   username_template = "v_user_{{unix_time}}"
-  default_ttl       = "3600"
+  default_ttl       = "300"
 }

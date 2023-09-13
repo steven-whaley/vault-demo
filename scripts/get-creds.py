@@ -76,14 +76,3 @@ else :
                 check_out_service_account(role)
             elif action == "check-in":
                 check_in_service_account(role)
-# if type == "dynamic" :
-#     get_dynamic_creds(role)
-
-# if type == "static" :
-#     get_static_creds(role)
-
-# if type == "service-account" :
-#     if action == "check-out" :
-#         check_out_service_account(role)
-#     if action == "check-in" :
-#         check_in_service_account(role)
